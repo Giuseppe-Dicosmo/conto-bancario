@@ -1,17 +1,3 @@
-// Si realizzi un'applicazione che simuli la gestione di conti bancari.
-
-//  La classe ContoBancario dovrà svolgere il compito principale all'interno dell'applicazione.
-
-// // Tramite questa classe si creeranno oggetti che permetteranno di accedere al conto tramite l'inserimento del codice segreto
-
-// // Una volta fatto accesso al conto verra stampato a video il saldo, l'iban e la lista dei movimenti.
-
-// // Inoltre tramite la classe conto bancario dovrà essere possibile effettuare operazioni quali: prelievo, bonifico e acquisto.
-
-// // suggerimento: in typescript come in javascript le classi possono avere anche array come variabili.
-
-// punto facoltativo: Potete immaginare anche una classe esterna che simuli l'arrivo dello stipendio sui conti bancari, così da realizzare anche un'entrata economica sul saldo bancario, anche questa dovrà figurare sulla lista dei movimenti.
-
 interface account {
   nome: string;
   cognome: string;
@@ -36,16 +22,16 @@ class contoBancario {
   ) {
     this.nome = nome;
     this.cognome = cognome;
+    this.codiceSegreto = codiceSegreto;
     this.saldo = saldo;
     this.iban = iban;
-    this.codiceSegreto = codiceSegreto;
     this.transazioniEffettuate = transazioniEffettuate;
   }
 
   tostring(): string {
     return `Ciao ${this.nome} ${this.cognome} ecco il tuo Saldo:${
       this.saldo
-    }€ IBAN:${this.iban} transazioni:${this.transazioniEffettuate.join("€ ")}€`;
+    }€ IBAN:${this.iban} movimenti:${this.transazioniEffettuate.join("€ ")}€`;
   }
 }
 
@@ -68,6 +54,24 @@ class card extends contoBancario {
     this.cvv = cvv;
   }
 }
+
+class stipendio {
+  nome: string;
+  cognome: string;
+  saldo: number;
+
+  constructor(nome: string, cognome: string, saldo: number) {
+    this.nome = nome;
+    this.cognome = cognome;
+    this.saldo = saldo;
+  }
+
+  tostringStipendio(): string {
+    return `Il tuo datore di lavoro ${this.nome} ${this.cognome}, ti ha inviato il tuo stipendio ${this.saldo}€`;
+  }
+}
+
+const datoreLavoro = new stipendio("Marco", "Verdi", 1300);
 
 const pippo = new contoBancario(
   "Pippo",
@@ -145,8 +149,10 @@ function accesso(conti: account[], codice: string) {
 
     if (codice == contoBancario.codiceSegreto) {
       prelevare(contoBancario, "tizio10", 0);
-      bonifico(contoBancario, "tizio10", 100, "IT18C0300203280617183785368");
-      acquisto(cardConto, "tizio10", 0, 346, 8540964656002819);
+      bonifico(contoBancario, "tizio10", 0, "IT18C0300203280617183785368");
+      acquisto(cardConto, "tizio10", 150, 346, 8540964656002819);
+
+      entrataStipendio(contoBancario, datoreLavoro);
 
       console.log(`${contoBancario.tostring()}`);
     }
@@ -164,19 +170,34 @@ function accesso(conti: account[], codice: string) {
 }
 accesso(conti, "tizio10");
 
-function prelevare(contoBancario: any, codice: string, prelievo: number) {
-  if (
-    prelievo <= contoBancario.saldo &&
-    contoBancario.codiceSegreto == codice
-  ) {
+function entrataStipendio(contoBancario: any, datoreLavoro: any) {
+  if (datoreLavoro.saldo > 0) {
     // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
-    ultimiMovimenti(contoBancario.transazioniEffettuate, prelievo);
+    ultimiMovimenti(contoBancario.transazioniEffettuate, datoreLavoro.saldo);
 
-    contoBancario.saldo -= prelievo;
-  } else if (contoBancario.codiceSegreto !== codice) {
-    console.error(`il codice e errato`);
-  } else if (prelievo > contoBancario.saldo) {
-    console.error(`saldo insufficiente hai solamente ${contoBancario.saldo}€`);
+    contoBancario.saldo += datoreLavoro.saldo;
+
+    console.log(`${datoreLavoro.tostringStipendio()}`);
+  }
+}
+
+function prelevare(contoBancario: any, codice: string, prelievo: number) {
+  if (prelievo > 0) {
+    if (
+      prelievo <= contoBancario.saldo &&
+      contoBancario.codiceSegreto == codice
+    ) {
+      // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
+      ultimiMovimenti(contoBancario.transazioniEffettuate, prelievo);
+
+      contoBancario.saldo -= prelievo;
+    } else if (contoBancario.codiceSegreto !== codice) {
+      console.error(`il codice e errato`);
+    } else if (prelievo > contoBancario.saldo) {
+      console.error(
+        `saldo insufficiente hai solamente ${contoBancario.saldo}€`
+      );
+    }
   }
 }
 
@@ -186,21 +207,25 @@ function bonifico(
   bonifico: number,
   iban: string
 ) {
-  if (
-    bonifico <= contoBancario.saldo &&
-    contoBancario.codiceSegreto == codice &&
-    contoBancario.iban == iban
-  ) {
-    // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
-    ultimiMovimenti(contoBancario.transazioniEffettuate, bonifico);
+  if (bonifico > 0) {
+    if (
+      bonifico <= contoBancario.saldo &&
+      contoBancario.codiceSegreto == codice &&
+      contoBancario.iban == iban
+    ) {
+      // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
+      ultimiMovimenti(contoBancario.transazioniEffettuate, bonifico);
 
-    contoBancario.saldo -= bonifico;
-  } else if (contoBancario.codiceSegreto !== codice) {
-    console.error(`il codice e errato`);
-  } else if (contoBancario.iban !== iban || iban.length !== 27) {
-    console.error(`l'iban che hai inserito e sbagliato`);
-  } else if (bonifico > contoBancario.saldo) {
-    console.error(`saldo insufficiente hai solamente ${contoBancario.saldo}€`);
+      contoBancario.saldo -= bonifico;
+    } else if (contoBancario.codiceSegreto !== codice) {
+      console.error(`il codice e errato`);
+    } else if (contoBancario.iban !== iban || iban.length !== 27) {
+      console.error(`l'iban che hai inserito e sbagliato`);
+    } else if (bonifico > contoBancario.saldo) {
+      console.error(
+        `saldo insufficiente hai solamente ${contoBancario.saldo}€`
+      );
+    }
   }
 }
 
@@ -211,28 +236,28 @@ function acquisto(
   cvv: any,
   numeroCard: any
 ) {
-  if (
-    acquisto <= cardConto.saldo &&
-    cardConto.codiceSegreto == codice &&
-    cardConto.numeroCard == numeroCard &&
-    cardConto.cvv == cvv
-  ) {
-    // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
-    ultimiMovimenti(cardConto.transazioniEffettuate, acquisto);
+  if (acquisto > 0) {
+    if (
+      acquisto <= cardConto.saldo &&
+      cardConto.codiceSegreto == codice &&
+      cardConto.numeroCard == numeroCard &&
+      cardConto.cvv == cvv
+    ) {
+      // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
+      ultimiMovimenti(cardConto.transazioniEffettuate, acquisto);
 
-    cardConto.saldo -= acquisto;
-  } else if (cardConto.codiceSegreto !== codice) {
-    console.error(`il codice e errato`);
-  } else if (cardConto.numeroCard !== numeroCard || cvv.length !== 3) {
-    console.log(`i dati della carta non sono stati inseriti correttamente`);
-  } else if (acquisto > cardConto.saldo) {
-    console.error(`saldo insufficiente hai solamente ${cardConto.saldo}€`);
+      cardConto.saldo -= acquisto;
+    } else if (cardConto.codiceSegreto !== codice) {
+      console.error(`il codice e errato`);
+    } else if (cardConto.numeroCard !== numeroCard || cvv.length !== 3) {
+      console.log(`i dati della carta non sono stati inseriti correttamente`);
+    } else if (acquisto > cardConto.saldo) {
+      console.error(`saldo insufficiente hai solamente ${cardConto.saldo}€`);
+    }
   }
 }
 
 function ultimiMovimenti(transazioniEffettuate: any, movimento: number) {
-  if (movimento > 0) {
-    transazioniEffettuate.push(movimento);
-    return transazioniEffettuate.unshift(transazioniEffettuate.pop());
-  }
+  transazioniEffettuate.push(movimento);
+  return transazioniEffettuate.unshift(transazioniEffettuate.pop());
 }

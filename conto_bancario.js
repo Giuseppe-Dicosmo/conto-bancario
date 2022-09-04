@@ -1,4 +1,3 @@
-// Si realizzi un'applicazione che simuli la gestione di conti bancari.
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -18,13 +17,13 @@ var contoBancario = /** @class */ (function () {
     function contoBancario(nome, cognome, codiceSegreto, saldo, iban, transazioniEffettuate) {
         this.nome = nome;
         this.cognome = cognome;
+        this.codiceSegreto = codiceSegreto;
         this.saldo = saldo;
         this.iban = iban;
-        this.codiceSegreto = codiceSegreto;
         this.transazioniEffettuate = transazioniEffettuate;
     }
     contoBancario.prototype.tostring = function () {
-        return "Ciao ".concat(this.nome, " ").concat(this.cognome, " ecco il tuo Saldo:").concat(this.saldo, "\u20AC IBAN:").concat(this.iban, " transazioni:").concat(this.transazioniEffettuate.join("€ "), "\u20AC");
+        return "Ciao ".concat(this.nome, " ").concat(this.cognome, " ecco il tuo Saldo:").concat(this.saldo, "\u20AC IBAN:").concat(this.iban, " movimenti:").concat(this.transazioniEffettuate.join("€ "), "\u20AC");
     };
     return contoBancario;
 }());
@@ -38,6 +37,18 @@ var card = /** @class */ (function (_super) {
     }
     return card;
 }(contoBancario));
+var stipendio = /** @class */ (function () {
+    function stipendio(nome, cognome, saldo) {
+        this.nome = nome;
+        this.cognome = cognome;
+        this.saldo = saldo;
+    }
+    stipendio.prototype.tostringStipendio = function () {
+        return "Il tuo datore di lavoro ".concat(this.nome, " ").concat(this.cognome, ", ti ha inviato il tuo stipendio ").concat(this.saldo, "\u20AC");
+    };
+    return stipendio;
+}());
+var datoreLavoro = new stipendio("Marco", "Verdi", 0);
 var pippo = new contoBancario("Pippo", "Rossi", "tizio10", 1000, "IT18C0300203280617183785368", [200, 300, 400, 500]);
 var pippoCard = new card("Pippo", "Rossi", "tizio10", 1000, "IT18C0300203280617183785368", [200, 300, 400, 500], 8540964656002819, 346);
 var tiziano = new contoBancario("Tiziano", "Ferro", "tizio20", 15000, "IT91C0300203280595354844399", [150, 30, 400, 100]);
@@ -59,8 +70,9 @@ function accesso(conti, codice) {
         var cardConto = item;
         if (codice == contoBancario_1.codiceSegreto) {
             prelevare(contoBancario_1, "tizio10", 0);
-            bonifico(contoBancario_1, "tizio10", 100, "IT18C0300203280617183785368");
-            acquisto(cardConto, "tizio10", 0, 346, 8540964656002819);
+            bonifico(contoBancario_1, "tizio10", 0, "IT18C0300203280617183785368");
+            acquisto(cardConto, "tizio10", 150, 346, 8540964656002819);
+            entrataStipendio(contoBancario_1, datoreLavoro);
             console.log("".concat(contoBancario_1.tostring()));
         }
     }
@@ -75,60 +87,72 @@ function accesso(conti, codice) {
     }
 }
 accesso(conti, "tizio10");
-function prelevare(contoBancario, codice, prelievo) {
-    if (prelievo <= contoBancario.saldo &&
-        contoBancario.codiceSegreto == codice) {
+function entrataStipendio(contoBancario, datoreLavoro) {
+    if (datoreLavoro.saldo > 0) {
         // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
-        ultimiMovimenti(contoBancario.transazioniEffettuate, prelievo);
-        contoBancario.saldo -= prelievo;
+        ultimiMovimenti(contoBancario.transazioniEffettuate, datoreLavoro.saldo);
+        contoBancario.saldo += datoreLavoro.saldo;
+        console.log("".concat(datoreLavoro.tostringStipendio()));
     }
-    else if (contoBancario.codiceSegreto !== codice) {
-        console.error("il codice e errato");
-    }
-    else if (prelievo > contoBancario.saldo) {
-        console.error("saldo insufficiente hai solamente ".concat(contoBancario.saldo, "\u20AC"));
+}
+function prelevare(contoBancario, codice, prelievo) {
+    if (prelievo > 0) {
+        if (prelievo <= contoBancario.saldo &&
+            contoBancario.codiceSegreto == codice) {
+            // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
+            ultimiMovimenti(contoBancario.transazioniEffettuate, prelievo);
+            contoBancario.saldo -= prelievo;
+        }
+        else if (contoBancario.codiceSegreto !== codice) {
+            console.error("il codice e errato");
+        }
+        else if (prelievo > contoBancario.saldo) {
+            console.error("saldo insufficiente hai solamente ".concat(contoBancario.saldo, "\u20AC"));
+        }
     }
 }
 function bonifico(contoBancario, codice, bonifico, iban) {
-    if (bonifico <= contoBancario.saldo &&
-        contoBancario.codiceSegreto == codice &&
-        contoBancario.iban == iban) {
-        // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
-        ultimiMovimenti(contoBancario.transazioniEffettuate, bonifico);
-        contoBancario.saldo -= bonifico;
-    }
-    else if (contoBancario.codiceSegreto !== codice) {
-        console.error("il codice e errato");
-    }
-    else if (contoBancario.iban !== iban || iban.length !== 27) {
-        console.error("l'iban che hai inserito e sbagliato");
-    }
-    else if (bonifico > contoBancario.saldo) {
-        console.error("saldo insufficiente hai solamente ".concat(contoBancario.saldo, "\u20AC"));
+    if (bonifico > 0) {
+        if (bonifico <= contoBancario.saldo &&
+            contoBancario.codiceSegreto == codice &&
+            contoBancario.iban == iban) {
+            // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
+            ultimiMovimenti(contoBancario.transazioniEffettuate, bonifico);
+            contoBancario.saldo -= bonifico;
+        }
+        else if (contoBancario.codiceSegreto !== codice) {
+            console.error("il codice e errato");
+        }
+        else if (contoBancario.iban !== iban || iban.length !== 27) {
+            console.error("l'iban che hai inserito e sbagliato");
+        }
+        else if (bonifico > contoBancario.saldo) {
+            console.error("saldo insufficiente hai solamente ".concat(contoBancario.saldo, "\u20AC"));
+        }
     }
 }
 function acquisto(cardConto, codice, acquisto, cvv, numeroCard) {
-    if (acquisto <= cardConto.saldo &&
-        cardConto.codiceSegreto == codice &&
-        cardConto.numeroCard == numeroCard &&
-        cardConto.cvv == cvv) {
-        // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
-        ultimiMovimenti(cardConto.transazioniEffettuate, acquisto);
-        cardConto.saldo -= acquisto;
-    }
-    else if (cardConto.codiceSegreto !== codice) {
-        console.error("il codice e errato");
-    }
-    else if (cardConto.numeroCard !== numeroCard || cvv.length !== 3) {
-        console.log("i dati della carta non sono stati inseriti correttamente");
-    }
-    else if (acquisto > cardConto.saldo) {
-        console.error("saldo insufficiente hai solamente ".concat(cardConto.saldo, "\u20AC"));
+    if (acquisto > 0) {
+        if (acquisto <= cardConto.saldo &&
+            cardConto.codiceSegreto == codice &&
+            cardConto.numeroCard == numeroCard &&
+            cardConto.cvv == cvv) {
+            // Questa funzione mette l’ultimo elemento al primo posto del array transazioniEffettuate
+            ultimiMovimenti(cardConto.transazioniEffettuate, acquisto);
+            cardConto.saldo -= acquisto;
+        }
+        else if (cardConto.codiceSegreto !== codice) {
+            console.error("il codice e errato");
+        }
+        else if (cardConto.numeroCard !== numeroCard || cvv.length !== 3) {
+            console.log("i dati della carta non sono stati inseriti correttamente");
+        }
+        else if (acquisto > cardConto.saldo) {
+            console.error("saldo insufficiente hai solamente ".concat(cardConto.saldo, "\u20AC"));
+        }
     }
 }
 function ultimiMovimenti(transazioniEffettuate, movimento) {
-    if (movimento > 0) {
-        transazioniEffettuate.push(movimento);
-        return transazioniEffettuate.unshift(transazioniEffettuate.pop());
-    }
+    transazioniEffettuate.push(movimento);
+    return transazioniEffettuate.unshift(transazioniEffettuate.pop());
 }
