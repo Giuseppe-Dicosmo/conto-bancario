@@ -29,9 +29,7 @@ class contoBancario {
   }
 
   tostring(): string {
-    return `Ciao ${this.nome} ${this.cognome} ecco il tuo Saldo:${
-      this.saldo
-    }€ IBAN:${this.iban} movimenti:${this.transazioniEffettuate.join("€ ")}€`;
+    return `Ciao ${this.nome} ${this.cognome} ecco il tuo Saldo:${this.saldo}€ IBAN:${this.iban} movimenti:${this.transazioniEffettuate.join("€ ")}€`;
   }
 }
 
