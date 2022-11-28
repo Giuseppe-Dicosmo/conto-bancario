@@ -1,3 +1,3 @@
-tsc nomeProgetto.ts
+tsc conto-bancario.ts
 
-node nomeProgetto.js
+node conto-bancario.js
